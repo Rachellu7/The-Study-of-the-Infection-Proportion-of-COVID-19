@@ -1,0 +1,62 @@
+---
+title: "STA450 HW3"
+author: "Ruichen Lu"
+date: "10/04/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r cars}
+library("EpiILMCT", quietly = TRUE)
+N = 2000
+net <- contactnet(type = "random", num.id = N, beta = 1)
+rate = c(transmission = 1/4000, recovery = 1/5, spark = 5e-04)
+set.seed(1)
+Si = matrix(rgamma(N, shape = 1/5, rate = 1/5))
+epi <- datagen(type = "SIR", kerneltype = "network",
+kernelmatrix = net, transpar = rate["transmission"],
+spark = rate["spark"], suspar = 1, suscov = Si,
+delta = c(shape = 1, rate = rate["recovery"]),
+tmax = 100)
+
+set.seed(2)
+Si = matrix(rgamma(N, shape = 1/5, rate = 1/5))
+epi2 <- datagen(type = "SIR", kerneltype = "network",
+kernelmatrix = net, transpar = rate["transmission"],
+spark = rate["spark"], suspar = 1, suscov = Si,
+delta = c(shape = 1, rate = rate["recovery"]),
+tmax = 100)
+```
+
+
+```{r pressure, echo=FALSE}
+d1 = density(epi$epidat[, "inf.time"], from = 0)[c("x",
+"y")]
+d2 = density(epi2$epidat[, "inf.time"], from = 0)[c("x",
+"y")]
+theYlim = c(0, max(c(max(d1$y), max(d2$y))))
+theXlim = c(-1, max(c(max(d1$x), max(d2$x))))
+plot(d1, type = "l", xlab = "time", ylab = "density", main="Simulation 1",
+ylim = theYlim, xlim = theXlim, xaxs = "i")
+points(epi$epidat[, "inf.time"], rep(0, nrow(epi$epidat)),
+col = "#FF000030", pch = 16)
+plot(d2, type = "l", xlab = "time", ylab = "density", main="Simulation 2",
+ylim = theYlim, xlim = theXlim, xaxs = "i")
+points(epi2$epidat[, "inf.time"], rep(0, nrow(epi2$epidat)),
+col = "#FF000030", pch = 16)
+```
+
+```{r}
+Sprop = seq(0, 1, len = 201)
+plot(quantile(epi$epidat[, "inf.time"], prob = Sprop),
+Sprop, xlab = "time", ylab = "prevalance", main="Simulation 1", xlim = c(0,
+70), ylim = c(0, 0.5), type = "l")
+plot(quantile(epi2$epidat[, "inf.time"], prob = Sprop),
+Sprop, xlab = "time", ylab = "prevalance", main="Simulation 2", xlim = c(0,
+70), ylim = c(0, 0.5), type = "l")
+```
+
